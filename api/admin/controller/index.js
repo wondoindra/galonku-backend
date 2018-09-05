@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 const models = require("../../../models/index");
 const Admin = models.admin;
 const Logging = models.logging;
+const Merchant = models.merchant;
 
 const controller = {
   show: async (req, res) => {
@@ -155,6 +156,36 @@ const controller = {
         : res.send({ message: "Please specify the password!" });
     } else {
       res.status(417).send({ message: "Please specify Admin ID!" });
+    }
+  },
+
+  updateMerchantStatus: (req, res) => {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    if (id) {
+      Merchant.findById(id).then(merchant => {
+        if (merchant) {
+          Merchant.update(
+            {
+              status
+            },
+            {
+              where: {
+                id
+              }
+            }
+          )
+            .then(merchant => {
+              res.status(200).send({ message: "Merchant status updated" });
+            })
+            .catch(error => res.status(500).send(error));
+        } else {
+          res.status(404).send({ message: "Merchant doesnt exist!" });
+        }
+      });
+    } else {
+      res.status(417).send({ message: "Please specify the Merchant ID" });
     }
   }
 };

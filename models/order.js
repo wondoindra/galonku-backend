@@ -38,7 +38,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     {}
   );
-  order.associate = function (models) {
+  order.associate = function(models) {
     // associations can be defined here
   };
   return order;
