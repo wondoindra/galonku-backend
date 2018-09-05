@@ -57,6 +57,8 @@ const controller = {
       identity_number,
       address
     } = req.body;
+    const sequelize = require("sequelize");
+    const op = sequelize.Op;
 
     if (
       username &&
@@ -67,50 +69,60 @@ const controller = {
       identity_number &&
       address
     ) {
-      const saltRounds = 5;
-      bcrypt
-        .hash(password, saltRounds)
-        .then(hash => {
-          return {
-            username,
-            store_name,
-            email,
-            password: hash,
-            phone_number,
-            identity_number,
-            price: "0",
-            address,
-            status: "pending",
-            createdAt: new Date() + 7,
-            updatedAt: new Date() + 7
-          };
-        })
-        .then(newMerchant => {
-          Merchant.build(newMerchant)
-            .save()
-            .then(merchants => {
-              const {
+      Merchant.findOne({
+        where: {
+          [op.or]: [{ username: username }, { email: email }]
+        }
+      }).then(merchant => {
+        if (!merchant) {
+          const saltRounds = 5;
+          bcrypt
+            .hash(password, saltRounds)
+            .then(hash => {
+              return {
                 username,
                 store_name,
                 email,
+                password: hash,
+                phone_number,
+                identity_number,
+                price: "0",
                 address,
-                status,
-                createdAt
-              } = merchants;
-              res.status(200).send({
-                message: "Your merchant account successfully registered!",
-                data: {
-                  username,
-                  store_name,
-                  email,
-                  address,
-                  status,
-                  createdAt
-                }
-              });
+                status: "pending",
+                createdAt: new Date() + 7,
+                updatedAt: new Date() + 7
+              };
             })
-            .catch(err => res.status(400).send({ message: err }));
-        });
+            .then(newMerchant => {
+              Merchant.build(newMerchant)
+                .save()
+                .then(merchants => {
+                  const {
+                    username,
+                    store_name,
+                    email,
+                    address,
+                    status,
+                    createdAt
+                  } = merchants;
+                  res.status(200).send({
+                    message: "Your merchant account successfully registered!",
+                    data: {
+                      username,
+                      store_name,
+                      email,
+                      address,
+                      status,
+                      createdAt
+                    }
+                  });
+                })
+                .catch(err => res.status(400).send({ message: err }));
+            });
+        } else {
+          res.status(417).send({ message: "username of email exist" });
+        }
+      });
     } else res.status(417).send({ message: "please fill all data" });
   },
 

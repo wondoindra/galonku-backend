@@ -107,7 +107,7 @@ const controller = {
           res.status(417).send({ message: "username or email exist" });
         }
       });
-    }
+    } else res.status(417).send({ message: "please fill all data" });
   },
 
   login: async (req, res) => {
